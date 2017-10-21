@@ -4,23 +4,25 @@ This is a module for the [MagicMirror²](https://github.com/MichMich/MagicMirror
 
 Display the air quality index from looko2 sensor.
 
+![img](https://user-images.githubusercontent.com/3609998/31854255-0bb48386-b696-11e7-82ff-ffa883796c8b.png)
+
 ## Using the module
 
 To use this module, add the following configuration block to the modules array in the `config/config.js` file:
 ```js
 var config = {
-    modules: [
+	modules: [
         {
-            module: "MMM-Looko2-aq",
-			position: "top_right",
-			header: "Air Quality Index",
-			config: {
-                deviceId: "", // from http://looko2.com/heatmap.php
-                locationName: "Street, City",    
-				showIndex: true,
-                showDetails: true,
-                lang: "en" // pl
-			}
+		module: "MMM-Looko2-aq",
+		position: "top_right",
+		header: "Air Quality Index",
+		config: {
+                	deviceId: "", // from http://looko2.com/heatmap.php
+                	locationName: "Street, City",    
+			showIndex: true,
+                	showDetails: true,
+                	lang: "en" // pl
+		}
         }
     ]
 }
