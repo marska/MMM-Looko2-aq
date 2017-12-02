@@ -39,10 +39,11 @@ Module.register("MMM-Looko2-aq", {
 		this.updateDom(this.animationSpeed);
 	},
 	html: {
-		icon: '<i class="fa fa-leaf"></i>',
+		icon: '<i class="fa fa-leaf {0}"></i>',
 		quality: '<div class="bright">{0} {1}{2}</div>',
 		city: '<div class="xsmall">{0}</div>',
 		details: '<div class="xsmall">PM<sub>10</sub> <b>{0}</b> PM<sub>2.5</sub> <b>{1}</b> PM<sub>1</sub> <b>{2}</b></div>',
+		service: '<div class="xsmall">via looko2.com</div>'
 	},
 	getScripts: function() {
 		return [
@@ -51,7 +52,7 @@ Module.register("MMM-Looko2-aq", {
 		];
 	},
 	getStyles: function() {
-		return ['https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css'];
+		return ["MMM-Looko2-aq.css", "https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"];
 	},
 
 	getDom: function() {
@@ -68,6 +69,15 @@ Module.register("MMM-Looko2-aq", {
 			return wrapper;
 		}
 
+		// set icon color
+		if(this.data.IJP <= 2){
+			this.html.icon = this.html.icon.format("MMM-Looko2-aq-status-good")
+		}else if(this.data.IJP <= 5){
+			this.html.icon = this.html.icon.format("MMM-Looko2-aq-status-moderate")
+		}else if(this.data.IJP > 5){
+			this.html.icon = this.html.icon.format("MMM-Looko2-aq-status-poor")
+		}
+
 		wrapper.innerHTML =
 			this.html.quality.format(
 				this.html.icon,
@@ -78,7 +88,13 @@ Module.register("MMM-Looko2-aq", {
 			wrapper.innerHTML += this.html.details.format(this.data.PM10,this.data.PM25,this.data.PM1);
 		}
 
-		wrapper.innerHTML += this.html.city.format(this.config.locationName)
+		if(this.config.locationName){
+			wrapper.innerHTML += this.html.city.format(this.config.locationName);
+		}
+
+		if(this.config.showProvider){
+			wrapper.innerHTML += this.html.service;
+		}
 
 		return wrapper;
 	}
