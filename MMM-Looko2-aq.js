@@ -36,7 +36,7 @@ Module.register("MMM-Looko2-aq", {
 		this.data.PM10 = data.PM10;
 		this.data.IJP = data.IJP;
 		this.data.Temperature = data.Temperature;
-		this.Humidity = data.Humidity;
+		this.data.Humidity = data.Humidity;
 
 		this.loaded = true;
 		this.updateDom(this.animationSpeed);
@@ -93,7 +93,7 @@ Module.register("MMM-Looko2-aq", {
 		}
 
 		if(this.config.showWeather){
-			wrapper.innerHTML += this.html.weather.format(this.data.Humidity, this.Temperature);
+			wrapper.innerHTML += this.html.weather.format(this.data.Humidity, this.data.Temperature);
 		}
 
 		if(this.config.locationName){
