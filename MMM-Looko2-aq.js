@@ -11,6 +11,7 @@ Module.register("MMM-Looko2-aq", {
 	defaults: {
 		lang: "",
 		showIndex: true,
+		showWeather: true,
 		updateInterval: 15,
 		animationSpeed: 1000
 	},
@@ -34,6 +35,8 @@ Module.register("MMM-Looko2-aq", {
 		this.data.PM25 = data.PM25;
 		this.data.PM10 = data.PM10;
 		this.data.IJP = data.IJP;
+		this.data.Temperature = data.Temperature;
+		this.Humidity = data.Humidity;
 
 		this.loaded = true;
 		this.updateDom(this.animationSpeed);
@@ -43,7 +46,8 @@ Module.register("MMM-Looko2-aq", {
 		quality: '<div class="bright">{0} {1}{2}</div>',
 		city: '<div class="xsmall">{0}</div>',
 		details: '<div class="xsmall">PM<sub>10</sub> <b>{0}</b> PM<sub>2.5</sub> <b>{1}</b> PM<sub>1</sub> <b>{2}</b></div>',
-		service: '<div class="xsmall">via looko2.com</div>'
+		service: '<div class="xsmall">via looko2.com</div>',
+		weather: '<div class="bright">{0}% {1}&deg;</div>'
 	},
 	getScripts: function() {
 		return [
@@ -86,6 +90,10 @@ Module.register("MMM-Looko2-aq", {
 
 		if(this.config.showDetails){
 			wrapper.innerHTML += this.html.details.format(this.data.PM10,this.data.PM25,this.data.PM1);
+		}
+
+		if(this.config.showWeather){
+			wrapper.innerHTML += this.html.weather.format(this.data.Humidity, this.Temperature);
 		}
 
 		if(this.config.locationName){
