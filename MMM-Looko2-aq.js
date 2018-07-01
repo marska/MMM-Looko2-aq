@@ -47,7 +47,7 @@ Module.register("MMM-Looko2-aq", {
 		city: '<div class="xsmall">{0}</div>',
 		details: '<div class="xsmall">PM<sub>10</sub> <b>{0}</b> PM<sub>2.5</sub> <b>{1}</b> PM<sub>1</sub> <b>{2}</b></div>',
 		service: '<div class="xsmall">via looko2.com</div>',
-		weather: '<div class="bright"><i class="fas fa-tint"></i> {0}% <i class="fas fa-thermometer-three-quarters"></i> {1}&deg;</div>'
+		weather: '<div><i class="fa fa-tint"></i> <a class="bright">{0}%</a> <i class="fa fa-thermometer-three-quarters"></i> <a class="bright">{1}&deg;</a></div>',
 	},
 	getScripts: function() {
 		return [
