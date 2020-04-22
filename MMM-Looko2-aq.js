@@ -56,7 +56,7 @@ Module.register("MMM-Looko2-aq", {
 		];
 	},
 	getStyles: function() {
-		return ["MMM-Looko2-aq.css", "https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"];
+		return ["MMM-Looko2-aq.css"];
 	},
 
 	getDom: function() {
