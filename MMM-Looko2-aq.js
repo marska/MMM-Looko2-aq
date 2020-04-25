@@ -90,7 +90,7 @@ Module.register("MMM-Looko2-aq", {
 
 			var updateDelayInMinutes = (new Date().getTime()/1000 - this.dataRequest.Epoch)/60;
 
-			if(updateDelayInMinutes > 29){
+			if(updateDelayInMinutes > 59){
 				var wrapperWarning = document.createElement("div");
 
 				wrapperWarning.innerHTML = this.html.warning.format(this.dataRequest.EpochHumanDate, this.dataRequest.EpochHumanTime);;
