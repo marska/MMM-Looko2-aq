@@ -1,46 +1,76 @@
+/* global Module */
+
 /* Magic Mirror
  * Module: MMM-Looko2-aq
  *
- * By Mariusz Skarupiński https://github.com/marska
- * Base on MMM-AirQuality module https://github.com/CFenner/MMM-AirQuality
- * 
+ * By Mariusz Skarupiński (https://github.com/marska)
  * MIT Licensed.
  */
-Module.register("MMM-Looko2-aq", {
 
+Module.register("MMM-Looko2-aq", {
 	defaults: {
 		lang: "",
 		showIndex: true,
 		showWeather: true,
-		updateInterval: 15,
-		animationSpeed: 1000
+		showProvider: true,
+		showDetails: true,
+		updateInterval: 60000,
+		retryDelay: 5000
 	},
-	start: function(){
-		Log.info("Starting module: " + this.name);
 
-		this.load();
+	requiresVersion: "2.1.0",
 
-		setInterval(
-			this.load.bind(this),
-			this.config.updateInterval * 60 * 1000);
-	},
-	load: function(){
-		$.getJSON(
-			'http://api.looko2.com/?method=GetLOOKO&id='+this.config.deviceId+'&token=1508579768',
-			this.render.bind(this));
-	},
-	render: function(data){
-		this.data.impact = (this.config.lang === "pl" ? data.IJPString : data.IJPStringEN);
-		this.data.PM1 = data.PM1;
-		this.data.PM25 = data.PM25;
-		this.data.PM10 = data.PM10;
-		this.data.IJP = data.IJP;
-		this.data.Temperature = data.Temperature;
-		this.data.Humidity = data.Humidity;
+	start: function() {
+		var self = this;
+		var dataRequest = null;
 
-		this.loaded = true;
-		this.updateDom(this.animationSpeed);
+		this.loaded = false;
+
+		this.getData();
+		setInterval(function() {
+			self.updateDom();
+		}, this.config.updateInterval);
 	},
+
+	getData: function() {
+		var self = this;
+
+		var urlApi = "http://api.looko2.com/?method=GetLOOKO&id="+this.config.deviceId+'&token=1508579768';
+
+		var dataRequest = new XMLHttpRequest();
+		dataRequest.open("GET", urlApi, true);
+		dataRequest.onreadystatechange = function() {
+			if (this.readyState === 4) {
+				if (this.status === 200) {
+					self.processData(JSON.parse(this.response));
+				} else {
+					self.updateDom(self.config.animationSpeed);
+
+					Log.error(self.name, "Could not load data. Status code: "+ this.status);
+				}
+
+				self.scheduleUpdate((self.loaded) ? -1 : self.config.retryDelay);
+			}
+		};
+
+		dataRequest.send();
+	},
+
+	scheduleUpdate: function(delay) {
+		var nextLoad = this.config.updateInterval;
+		
+		if (typeof delay !== "undefined" && delay >= 0) {
+			nextLoad = delay;
+		}
+
+		nextLoad = nextLoad;
+
+		var self = this;
+		setTimeout(function() {
+			self.getData();
+		}, nextLoad);
+	},
+
 	html: {
 		icon: '<i class="fa fa-leaf {0}"></i>',
 		quality: '<div class="bright">{0} {1}{2}</div>',
@@ -48,62 +78,100 @@ Module.register("MMM-Looko2-aq", {
 		details: '<div class="xsmall">PM<sub>10</sub> <b>{0}</b> PM<sub>2.5</sub> <b>{1}</b> PM<sub>1</sub> <b>{2}</b></div>',
 		service: '<div class="xsmall">via looko2.com</div>',
 		weather: '<div><i class="fa fa-tint"></i> <a class="bright">{0}%</a> <i class="fa fa-thermometer-three-quarters"></i> <a class="bright">{1}&deg;</a></div>',
-	},
-	getScripts: function() {
-		return [
-			'//cdnjs.cloudflare.com/ajax/libs/jquery/2.2.2/jquery.js',
-			'String.format.js'
-		];
-	},
-	getStyles: function() {
-		return ["MMM-Looko2-aq.css", "https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"];
+		warning: '<div class="xsmall MMM-Looko2-aq-warning"><i class="fas fa-exclamation-triangle"></i> Last update: {0} {1}.</div>',
 	},
 
 	getDom: function() {
+		var self = this;
+
 		var wrapper = document.createElement("div");
-		if (this.config.deviceId === "") {
-			wrapper.innerHTML = "Please set the <i>deviceId</i> in the config for module: " + this.name + ".";
-			wrapper.className = "dimmed light small";
-			return wrapper;
+
+		if (this.dataRequest) {
+
+			var updateDelayInMinutes = (new Date().getTime()/1000 - this.dataRequest.Epoch)/60;
+
+			if(updateDelayInMinutes > 29){
+				var wrapperWarning = document.createElement("div");
+
+				wrapperWarning.innerHTML = this.html.warning.format(this.dataRequest.EpochHumanDate, this.dataRequest.EpochHumanTime);;
+				wrapper.appendChild(wrapperWarning);
+			}
+
+			var wrapperQuality = document.createElement("div");
+
+			var icon = null;
+			if(this.dataRequest.IJP <= 2){
+				icon = this.html.icon.format("MMM-Looko2-aq-status-good")
+			}else if(this.dataRequest.IJP <= 5){
+				icon = this.html.icon.format("MMM-Looko2-aq-status-moderate")
+			}else if(this.dataRequest.IJP > 5){
+				icon = this.html.icon.format("MMM-Looko2-aq-status-poor")
+			}
+
+			wrapperQuality.innerHTML =
+				this.html.quality.format(
+					icon,
+					this.dataRequest.impact,
+					(this.config.showIndex?" ("+this.dataRequest.IJP+")":""));
+	
+			wrapper.appendChild(wrapperQuality);
+
+			if(this.config.showDetails){
+				var wrapperDetails = document.createElement("div");
+				wrapperDetails.innerHTML = this.html.details.format(this.dataRequest.PM10,this.dataRequest.PM25,this.dataRequest.PM1);
+				
+				wrapper.appendChild(wrapperDetails);
+			}
+
+			if(this.config.showWeather){
+				var wrapperWeather = document.createElement("div");
+				wrapperWeather.innerHTML += this.html.weather.format(this.dataRequest.Humidity, this.dataRequest.Temperature);
+			
+				wrapper.appendChild(wrapperWeather);
+			}
+	
+			if(this.config.locationName){
+				var wrapperLocation = document.createElement("div");
+
+				wrapperLocation.innerHTML = this.html.city.format(this.config.locationName);
+
+				wrapper.appendChild(wrapperLocation);
+
+			}
+	
+			if(this.config.showProvider){
+				var wrapperProvider = document.createElement("div");
+
+				wrapperProvider.innerHTML = this.html.service;
+
+				wrapper.appendChild(wrapperProvider);
+			}
 		}
-
-		if (!this.loaded) {
-			wrapper.innerHTML = "Loading air quality index ...";
-			wrapper.className = "dimmed light small";
-			return wrapper;
-		}
-
-		// set icon color
-		if(this.data.IJP <= 2){
-			this.html.icon = this.html.icon.format("MMM-Looko2-aq-status-good")
-		}else if(this.data.IJP <= 5){
-			this.html.icon = this.html.icon.format("MMM-Looko2-aq-status-moderate")
-		}else if(this.data.IJP > 5){
-			this.html.icon = this.html.icon.format("MMM-Looko2-aq-status-poor")
-		}
-
-		wrapper.innerHTML =
-			this.html.quality.format(
-				this.html.icon,
-				this.data.impact,
-				(this.config.showIndex?" ("+this.data.IJP+")":""));
-
-		if(this.config.showDetails){
-			wrapper.innerHTML += this.html.details.format(this.data.PM10,this.data.PM25,this.data.PM1);
-		}
-
-		if(this.config.showWeather){
-			wrapper.innerHTML += this.html.weather.format(this.data.Humidity, this.data.Temperature);
-		}
-
-		if(this.config.locationName){
-			wrapper.innerHTML += this.html.city.format(this.config.locationName);
-		}
-
-		if(this.config.showProvider){
-			wrapper.innerHTML += this.html.service;
-		}
-
+		
 		return wrapper;
-	}
+	},
+
+	getScripts: function() {
+		return [
+			"String.format.js"
+		];
+	},
+
+	getStyles: function () {
+		return [
+			"MMM-Looko2-aq.css",
+		];
+	},
+
+	processData: function(data) {
+		var self = this;
+		this.dataRequest = data;
+		this.dataRequest.impact = (this.config.lang === "pl" ? data.IJPString : data.IJPStringEN);
+
+		if (this.loaded === false) { 
+			self.updateDom(self.config.animationSpeed); 
+		}
+
+		this.loaded = true;
+	},
 });
