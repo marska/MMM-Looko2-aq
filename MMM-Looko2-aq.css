@@ -1,3 +1,11 @@
+ /*
+ * MMM-Looko2-aq
+ *
+ * By Mariusz Skarupiński (https://github.com/marska)
+ * 
+ * MIT Licensed.
+ */
+
 .MMM-Looko2-aq-status-good {  
     color: #a3ea80;
 }
@@ -8,4 +16,8 @@
 
 .MMM-Looko2-aq-status-poor {  
     color: #ff5a44;
+}
+
+.MMM-Looko2-aq-warning {  
+    color: #ffc107;
 }
