@@ -14,8 +14,8 @@ Module.register("MMM-Looko2-aq", {
 		showWeather: true,
 		showProvider: true,
 		showDetails: true,
-		updateInterval: 60000,
-		retryDelay: 5000
+		updateInterval: 600000,
+		retryDelay: 50000
 	},
 
 	requiresVersion: "2.1.0",
